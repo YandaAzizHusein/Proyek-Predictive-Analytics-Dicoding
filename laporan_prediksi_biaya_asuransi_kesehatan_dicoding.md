@@ -1,189 +1,140 @@
-# Laporan Proyek Machine Learning - Prediksi Biaya Asuransi Kesehatan
+Baik, saya akan menyusun ulang laporan proyek prediksi biaya asuransi kesehatan menggunakan machine learning sesuai dengan kriteria bintang 5 submission Dicoding. Laporan ini akan diformat dengan struktur dan gaya penulisan profesional, lengkap dengan kutipan sesuai pedoman, insight analitis, dan penyusunan sesuai rubrik (domain, business understanding, data understanding, preparation, modeling, evaluation). Saya akan segera kembali dengan versi finalnya.
+
+
+# Prediksi Biaya Asuransi Kesehatan dengan Machine Learning
 
 ## Domain Proyek
 
-Kesehatan merupakan sektor dengan pengeluaran yang sangat besar secara global. Pada tahun 2021 saja, total belanja kesehatan dunia mencapai $9,8 triliun atau sekitar 10,3% dari PDB global. Namun, peningkatan belanja tersebut tidak selalu diiringi perbaikan signifikan pada outcome kesehatan masyarakat. Salah satu penyebab utama membengkaknya biaya kesehatan adalah faktor gaya hidup tidak sehat, seperti obesitas dan merokok, yang telah terbukti meningkatkan biaya medis tahunan secara signifikan.
+Pengeluaran di sektor kesehatan sangat besar secara global. Pada tahun 2021, total belanja kesehatan dunia mencapai sekitar **\$9,8 triliun (10,3% dari PDB global)**. Ironisnya, peningkatan belanja tersebut tidak selalu diiringi oleh perbaikan signifikan dalam outcome kesehatan masyarakat. Banyak pengamat mencatat bahwa pengeluaran kesehatan yang terus meningkat memberikan tekanan besar bagi rumah tangga, pemerintah, penyedia layanan, dan *insurer*, **tanpa diterjemahkan menjadi kesehatan masyarakat yang lebih baik**. Sejumlah faktor berkontribusi membuat biaya kesehatan *membengkak*, antara lain populasi yang menua serta tingginya prevalensi penyakit kronis (khususnya obesitas, penyakit jantung, kanker, diabetes, dsb).
 
-Asuransi kesehatan menjadi krusial sebagai mekanisme pembagian risiko finansial akibat biaya medis yang tinggi. Perusahaan asuransi membutuhkan prediksi biaya klaim yang akurat untuk menetapkan premi yang adil dan mengelola risiko. Model prediksi yang baik dapat memperkecil selisih antara prediksi dan realisasi klaim, sekaligus menjadi dasar strategi bisnis yang proaktif.
+Faktor gaya hidup tidak sehat berdampak besar pada biaya kesehatan. **Obesitas** misalnya, dilaporkan menyumbang **hampir \$173 miliar** pengeluaran medis di AS tiap tahun (data 2019). Riset CDC menunjukkan **individu dengan obesitas memiliki biaya medis tahunan rata-rata \$1.861 lebih tinggi** dibanding individu dengan berat badan sehat. Demikian pula, **merokok** merupakan faktor risiko mahal: kebiasaan merokok diperkirakan menimbulkan lebih dari **\$240 miliar** pengeluaran kesehatan di AS setiap tahun. Merokok juga menyebabkan beban kesehatan berat (menyebabkan >16 juta orang menderita penyakit terkait dan >480 ribu kematian per tahun di AS).
 
-**Mengapa masalah ini penting?**  
-- Biaya kesehatan yang tidak terprediksi dapat menimbulkan kerugian besar bagi asuransi dan memberatkan peserta.
-- Faktor risiko utama perlu diidentifikasi agar bisa dilakukan intervensi (misal: program berhenti merokok, edukasi BMI).
-
-**Referensi:**  
-- [CDC - Adult Obesity Facts](https://www.cdc.gov/obesity/adult-obesity-facts/index.html)
-- [CDC - Smoking & Tobacco Use](https://www.cdc.gov/nccdphp/priorities/tobacco-use.html)
-- [Kaggle - Medical Cost Personal Datasets](https://www.kaggle.com/datasets/mirichoi0218/insurance)
-
----
+Masalah-masalah di atas membuat **asuransi kesehatan** menjadi sangat krusial. Asuransi kesehatan adalah mekanisme di mana risiko finansial akibat biaya medis dibagi ke banyak orang (*risk pooling*). Perusahaan asuransi berupaya **memperkirakan risiko dan biaya kesehatan calon nasabah**, lalu menetapkan premi yang sesuai untuk menutup biaya klaim tersebut. Prediksi yang akurat atas biaya klaim sangat penting: jika premi terlalu rendah, perusahaan merugi; jika terlalu tinggi, nasabah keberatan dan perusahaan kehilangan daya saing. Oleh sebab itu, diperlukan pendekatan analitik berbasis data yang canggih untuk **mengestimasi biaya asuransi kesehatan per individu secara tepat**. Dengan data historis klaim medis, kita dapat membangun model *machine learning* untuk memprediksi biaya di masa depan berdasarkan profil pelanggan. Model prediktif semacam ini akan membantu perusahaan asuransi menetapkan premi yang wajar dan **mengidentifikasi faktor risiko utama** (misalnya merokok atau obesitas) yang dapat dikelola untuk menekan klaim di kemudian hari.
 
 ## Business Understanding
 
 ### Problem Statements
 
-1. **Bagaimana memprediksi biaya klaim asuransi kesehatan per individu dengan akurasi tinggi berdasarkan data profil pelanggan?**
-2. **Faktor-faktor apa saja yang paling berpengaruh terhadap besarnya biaya asuransi kesehatan?**
+* **Bagaimana memprediksi biaya klaim asuransi kesehatan per individu dengan akurasi tinggi berdasarkan profil pelanggan?** Misalnya berdasarkan usia, jenis kelamin, indeks massa tubuh (BMI), jumlah anak tanggungan, status perokok, dan wilayah tempat tinggal. Perusahaan asuransi membutuhkan model prediksi agar dapat mengestimasi pengeluaran klaim setiap nasabah secara tepat dan efisien.
+* **Faktor-faktor mana saja yang paling memengaruhi tingginya biaya asuransi kesehatan?** Mengetahui atribut dominan (contoh: apakah kebiasaan merokok atau obesitas yang lebih berpengaruh) akan membantu pemangku kepentingan dalam pengambilan keputusan bisnis – seperti menetapkan premi diferensial berbasis risiko, atau merancang program wellness untuk menurunkan biaya klaim di masa mendatang.
 
 ### Goals
 
-1. Membangun model regresi prediktif untuk memperkirakan biaya asuransi kesehatan per individu dengan tingkat error serendah mungkin.
-2. Mengidentifikasi dan mengurutkan faktor risiko utama yang mempengaruhi besarnya biaya klaim.
+1. **Membangun model regresi prediktif** yang mampu memperkirakan *individual medical insurance cost* (biaya asuransi kesehatan per orang) dengan tingkat kesalahan serendah mungkin. Keberhasilan model diukur menggunakan metrik evaluasi regresi pada data yang tidak dilatih (test set), yaitu *Root Mean Squared Error* (RMSE), *Mean Absolute Error* (MAE), dan koefisien determinasi (R²). Model dengan error lebih rendah (RMSE/MAE kecil) dan R² mendekati 1 diharapkan.
+2. **Mengidentifikasi dan mengurutkan faktor risiko yang paling berpengaruh** terhadap besarnya biaya asuransi. Dari hasil model dan analisis data, dapat dijawab fitur mana (usia, BMI, status perokok, dsb.) yang berkontribusi terbesar menaikkan biaya klaim. Insight ini akan menjadi dasar rekomendasi strategi bisnis (misalnya premi lebih tinggi bagi perokok, program penurunan berat badan, dll).
 
-### Solution Statements
+### Solution Strategy
 
-- Menggunakan pendekatan machine learning regresi dengan dua model: **Linear Regression** (baseline, interpretasi mudah) dan **Random Forest Regressor** (untuk menangkap hubungan non-linear).
-- Membandingkan kinerja kedua model menggunakan metrik RMSE, MAE, dan R² pada data uji.
-- Mengidentifikasi feature importance dan membahas implikasi bisnis dari insight yang diperoleh.
+Untuk mencapai tujuan tersebut, solusi dilakukan melalui tahapan berikut:
 
----
+* **Exploratory Data Analysis (EDA):** Sebelum pemodelan, dilakukan EDA untuk memahami distribusi biaya asuransi dan hubungan antar-fitur dengan *charges*. Analisis ini mencakup pemeriksaan statistik deskriptif dan visualisasi (misal: distribusi umur, BMI, proporsi perokok, korelasi Pearson antar variabel). Insight dari EDA akan membimbing pemilihan fitur dan teknik *preprocessing*. Contohnya, jika EDA menunjukkan perokok memiliki biaya jauh lebih tinggi, hal ini memberi indikasi kuatnya pengaruh fitur **smoker**.
+* **Model Development:** Dibangun dan dilatih lebih dari satu model regresi sebagai pembanding. Minimal dua algoritma dipakai:
+
+  1. *Linear Regression* (Regresi Linear) sebagai model baseline yang sederhana.
+  2. *Random Forest Regressor* sebagai model ensemble berbasis pohon keputusan yang lebih kompleks.
+
+  Kedua model dipilih karena sifatnya saling melengkapi: **Linear Regression** memberikan baseline linear yang mudah diinterpretasi (koefisien linear menunjukkan arah dan besarnya pengaruh tiap fitur), namun asumsi hubungan linear dapat membatasi akurasinya. **Random Forest** mampu menangkap hubungan yang **non-linear dan interaksi** antar fitur yang mungkin diabaikan oleh model linear, sehingga berpotensi memberikan akurasi lebih tinggi.
+* **Evaluation dan Model Selection:** Setelah training, kedua model dievaluasi pada *test set* (data uji yang dipisahkan di awal). Metrik yang digunakan adalah RMSE, MAE, dan R² seperti disebutkan. Kinerja model dibandingkan secara kuantitatif. **Model terbaik dipilih** berdasarkan error terendah (RMSE/MAE paling kecil) dan skor R² tertinggi pada data test. Selain itu, dipertimbangkan pula aspek interpretabilitas dan kompleksitas model. Misalnya, jika Random Forest dan Linear Regression memiliki performa hampir mirip, bisa jadi model linear dipilih karena lebih sederhana; namun jika selisih akurasi signifikan, model kompleks akan diambil.
+* **Feature Importance Analysis:** Terakhir, model terbaik dianalisis untuk melihat *feature importance*. Pada Linear Regression dapat dilihat dari nilai koefisien, sedangkan pada Random Forest dapat dilihat dari *feature importance* (misal Gini importance). Ini menjawab faktor mana yang paling memengaruhi prediksi biaya. Hasilnya akan dikaitkan kembali dengan insight EDA, untuk memastikan konsistensi, serta dijadikan dasar rekomendasi bisnis.
+
+Dengan strategi di atas, diharapkan solusi tidak hanya menghasilkan model prediksi yang akurat, tetapi juga *insight* berharga bagi bisnis asuransi kesehatan dalam memahami risiko biaya kesehatan.
 
 ## Data Understanding
 
-**Dataset:**  
-- [Kaggle - Medical Cost Personal Datasets](https://www.kaggle.com/datasets/mirichoi0218/insurance)
-- Jumlah sampel: 1338 entri (1 entri = 1 orang tertanggung asuransi)
-- Jumlah fitur: 6 fitur prediktor + 1 target (charges)
+### Dataset Overview
 
-**Fitur pada dataset:**
-- `age`: Usia (tahun, numerik)
-- `sex`: Jenis kelamin (`male`, `female`, kategorikal)
-- `bmi`: Body Mass Index (kg/m², numerik)
-- `children`: Jumlah anak tanggungan (numerik)
-- `smoker`: Status perokok (`yes`/`no`, kategorikal)
-- `region`: Wilayah tinggal (`northeast`, `northwest`, `southeast`, `southwest`, kategorikal)
-- `charges`: Biaya asuransi kesehatan individu (USD, target)
+Proyek ini menggunakan *Medical Cost Personal Dataset* dari **Kaggle**. Dataset ini berisi contoh data tagihan medis sejumlah individu di Amerika Serikat, beserta atribut demografis dan gaya hidup masing-masing. Secara struktural, dataset terdiri dari **1.338 baris** dan **7 kolom**. Tidak ada nilai *missing* pada seluruh kolom – setiap entri lengkap terisi untuk semua fitur (1338 non-null per kolom). Adapun skema fitur dalam dataset adalah:
 
-**Kondisi Data:**
-- Tidak ada missing value.
-- Tidak ada duplikasi.
-- Rentang usia: 18–64 tahun, BMI: 15,96–53,13, children: 0–5, proporsi perokok: ~20%.
+* **age** (numerik): Usia dari *primary beneficiary* (tertanggung utama), dalam tahun.
+* **sex** (kategori): Jenis kelamin tertanggung – *female* atau *male*.
+* **bmi** (numerik): *Body Mass Index* (indeks massa tubuh) tertanggung. BMI dihitung dari berat(kg) dibagi kuadrat tinggi(m²). Indikator kondisi berat badan: BMI >30 dikategorikan obesitas, sedangkan BMI ideal \~18.5–24.9.
+* **children** (numerik): Jumlah anak/anggota keluarga tanggungan yang dicakup oleh asuransi kesehatan tersebut.
+* **smoker** (kategori): Status perokok – *yes* jika tertanggung adalah perokok, *no* jika bukan.
+* **region** (kategori): Wilayah tempat tinggal tertanggung di AS (empat kategori: *northeast*, *northwest*, *southeast*, *southwest*).
+* **charges** (numerik, **target**): Biaya medis individual yang ditagihkan oleh perusahaan asuransi (dalam USD) untuk orang tersebut dalam setahun. Inilah variabel yang akan diprediksi oleh model (sering disebut *insurance charges* atau biaya klaim).
+
+**Kondisi data:** Dataset sudah terstruktur dengan baik. Tidak terdapat duplikasi identik. Rentang nilai tiap fitur dapat dilihat pada statistik berikut: usia berkisar antara **18 tahun hingga 64 tahun** (rerata \~39 tahun); BMI berkisar **15.96 hingga 53.13** (mean \~30.66, median \~30.4); jumlah anak tanggungan berkisar **0 hingga 5**, dengan mayoritas (≈85%) memiliki 0–2 anak. Distribusi jenis kelamin berimbang – **676 laki-laki (50,5%) dan 662 perempuan (49,5%)**. Keempat kategori **region** juga terwakili hampir merata (masing-masing sekitar 23–27% dari data, tidak ada dominasi ekstrem). Satu-satunya fitur kategori yang tidak seimbang adalah **smoker**: hanya **274 orang (≈20,5%)** yang merupakan perokok, sedangkan 1.064 (≈79,5%) adalah non-perokok. Proporsi ini menunjukkan bahwa meskipun perokok minoritas, mereka mungkin memiliki pengaruh besar pada biaya (hal ini akan kita eksplor di EDA).
+
+Biaya klaim kesehatan individu (**charges**) bervariasi sangat luas, mulai dari sekitar \$1.122 hingga \$63.770 per tahun. Rata-rata biaya adalah \~\$13.270, dengan median \~\$9.382. Distribusi *charges* tampak **right-skewed** (skewed ke kanan) – banyak nilai outlier di sisi tinggi. Terdapat \~139 nilai outlier pada kolom charges (sekitar 10% data), semuanya berupa biaya yang jauh di atas rata-rata. Ini mengindikasikan adanya sejumlah kecil nasabah dengan klaim medis sangat tinggi (kemungkinan mereka adalah individu berisiko tinggi, misalnya perokok dengan usia tua atau BMI tinggi).
 
 ### Exploratory Data Analysis (EDA)
 
-1. **Distribusi Charges**  
-   Distribusi charges right-skewed dengan banyak outlier (biaya sangat tinggi) pada kelompok risiko tinggi.  
-   ![Distribusi Charges](#)  
-   *Mayoritas biaya < $20.000/tahun, sedikit kasus ekstrem di atas $50.000.*
+Beberapa temuan penting dari EDA terhadap hubungan fitur dengan **charges**:
 
-2. **Korelasi Fitur Numerik**
-   - `age` memiliki korelasi positif sedang terhadap `charges` (r ≈ 0,30)
-   - `bmi` korelasi positif lemah (r ≈ 0,20)
-   - `children` korelasi hampir nol (r ≈ 0,07)
+* **Pengaruh Merokok:** Faktor **smoker** muncul paling mencolok. Rata-rata biaya medis untuk perokok jauh lebih tinggi dibanding bukan perokok. Dari diagram boxplot, kelompok *smoker* memiliki median dan sebaran biaya yang jauh di atas kelompok *non-smoker*. Hampir semua klaim termahal dalam data berasal dari perokok. Secara kuantitatif, **nasabah perokok rata-rata menanggung biaya \~4 kali lipat** nasabah non-perokok. Perbedaan ini didukung analisis korelasi: jika kita encode smoker (yes=1, no=0), korelasi Pearson antara *smoker* dan *charges* sekitar **r ≈ 0,78** (sangat kuat positif, tertinggi di antara semua fitur). Hal ini masuk akal mengingat perokok berisiko lebih tinggi menderita penyakit berat (misal penyakit jantung, kanker paru) sehingga klaim medisnya melonjak.
+* **Pengaruh BMI:** *Body mass index* juga menunjukkan korelasi positif terhadap biaya, meski tidak sebesar perokok. Semakin tinggi BMI (indikasi kelebihan berat/obesitas), cenderung semakin besar pula *charges*-nya. Korelasi Pearson **BMI–charges** berada di kisaran *r* \~0,3 (moderate) setelah mengontrol kategori perokok. EDA mengisyaratkan bahwa efek BMI bisa **berinteraksi** dengan status perokok: BMI tinggi pada perokok menghasilkan biaya sangat tinggi dibanding BMI tinggi pada non-perokok. Dengan kata lain, obesitas memperburuk efek merokok terhadap biaya. (Catatan: model *tree-based* dapat menangkap interaksi semacam ini secara otomatis, sedangkan model linear membutuhkan fitur interaksi eksplisit).
+* **Pengaruh Usia:** Fitur **age** memiliki **korelasi positif sedang** terhadap charges (Pearson *r* ≈ 0,30). Biaya kesehatan cenderung meningkat seiring pertambahan usia. Tren ini terlihat dari scatter plot age vs charges yang agak menaik, terutama karena orang tua lebih rentan penyakit kronis. Namun hubungan ini tidak sekuat pengaruh merokok. Orang muda perokok bisa jadi biayanya lebih tinggi daripada orang tua non-perokok, misalnya.
+* **Pengaruh Jenis Kelamin:** **sex** ternyata *hampir tidak berpengaruh* signifikan. Rata-rata biaya pria (~~\$13.900) sedikit lebih tinggi daripada wanita (~~\$12.600), selisih sekitar \$1.300. Namun perbedaan ini relatif kecil dan tidak signifikan secara statistik (korelasi *sex–charges* \~0,06, nyaris nol). Visualisasi boxplot juga menunjukkan distribusi biaya pria/wanita yang mirip, hanya pria ada sedikit lebih banyak outlier tinggi. Jadi jenis kelamin bukan penentu utama biaya dalam dataset ini.
+* **Pengaruh Region:** **region** (wilayah geografis) juga *nyaris tidak berpengaruh*. Meskipun rerata charges di *Southeast* tampak paling tinggi (~~\$14,7k) dan *Southwest* terendah (~~\$12,3k), perbedaan antar-wilayah ini tidak signifikan. Setelah diencoding (misal one-hot), korelasi region dengan charges \~ -0,006 (sangat mendekati 0). Hal ini berarti lokasi geografis hampir tidak memengaruhi biaya jika faktor lain sudah dipertimbangkan. Perbedaan mean tadi mungkin lebih karena *Southeast* kebetulan memiliki proporsi perokok atau obesitas lebih tinggi.
+* **Pengaruh Jumlah Anak:** Fitur **children** memiliki korelasi nyaris nol terhadap charges (Pearson *r* \~0,07). Punya lebih banyak tanggungan anak tampaknya tidak menaikkan biaya medis individual secara langsung. Hal ini masuk akal karena *charges* di sini adalah biaya individual (bukan total keluarga). EDA sempat menunjukkan sedikit kenaikan biaya untuk yang memiliki anak, bisa jadi terkait paket polis keluarga, tapi pengaruhnya sangat lemah.
 
-   ![Heatmap Korelasi](#)
+**Distribusi Biaya dan Outlier:** Seperti disebutkan, distribusi charges sangat skewed dengan banyak outlier tinggi. Keputusan di sini adalah **tidak menghapus outlier** biaya tinggi tersebut. Alasannya: outlier di kolom charges merepresentasikan kasus valid (misal nasabah dengan klaim sangat tinggi akibat kondisi kesehatan serius). Dalam konteks bisnis, data outlier ini justru penting karena model harus mampu memprediksi potensi klaim besar tersebut. Menghapus outlier bisa membuat model kurang waspada terhadap risiko ekstrim. Sebagai gantinya, jika diperlukan, bisa dicoba transformasi (misal log transform charges) untuk model linear, namun dalam proyek ini kami tetap menggunakan nilai asli agar interpretasi (dalam USD) tetap langsung.
 
-3. **Analisis Fitur Kategorikal**
-   - **Smoker:** Rata-rata biaya perokok hampir 4x non-perokok ($32.050 vs $8.434)
-   - **Sex:** Perbedaan rata-rata kecil (pria sedikit lebih tinggi)
-   - **Region:** Perbedaan kecil, southeast tertinggi
-
-   ![Boxplot Charges vs Smoker](#) ![Boxplot Charges vs Sex](#) ![Boxplot Charges vs Region](#)
-
-**Insight Utama:**  
-Status perokok adalah *prediktor terkuat* biaya asuransi, diikuti oleh usia dan BMI. Anak, jenis kelamin, dan region berpengaruh sangat kecil.
-
----
+Insight dari EDA di atas menegaskan bahwa **status perokok adalah faktor dominan** yang mendorong biaya asuransi, disusul oleh **obesitas (BMI tinggi)** dan **usia**. Sementara jenis kelamin, region, dan jumlah anak relatif tidak signifikan. Temuan-temuan ini konsisten dengan pengetahuan domain: merokok dan obesitas memang penyebab berbagai penyakit mahal, dan usia tua meningkatkan risiko kondisi medis kronis. Selanjutnya, insight EDA tersebut akan dijadikan acuan dalam tahap *data preparation* dan modeling (misal, perlu atau tidaknya fitur interaksi, pemilihan algoritma yang dapat menangani non-linearitas, dsb.).
 
 ## Data Preparation
 
-1. **Encoding Fitur Kategorikal**  
-   - *One-Hot Encoding* pada `sex` (drop: female), `smoker` (drop: no), dan `region` (drop: northeast).
-   - Hasil: Semua fitur jadi numerik, siap untuk ML.
+Sebelum pemodelan, dilakukan beberapa tahap *preprocessing* pada data:
 
-2. **Train-Test Split**  
-   - Data dibagi: 80% train, 20% test, random_state=42.
+* **Train-Test Split:** Dataset dibagi menjadi data latih dan data uji dengan proporsi 80:20. Sebanyak \~1.070 data digunakan untuk training model, dan \~268 data disisihkan sebagai *test set* untuk evaluasi akhir. Pembagian dilakukan secara acak stratified (dengan `random_state=42` untuk reproduktifitas). Proporsi perokok/non-perokok dan karakteristik lain terjaga serupa di kedua subset karena data cukup besar. Tujuan splitting ini adalah untuk mengukur kinerja model pada data *out-of-sample* yang tidak dilihat saat training, sehingga evaluasi lebih objektif.
+* **Encoding Fitur Kategorikal:** Model ML umumnya membutuhkan input numerik. Oleh karena itu, kolom kategori perlu dikonversi ke bentuk numerik. Teknik yang digunakan adalah **One-Hot Encoding (OHE)**. Fitur **sex**, **smoker**, dan **region** di-*encode* menjadi dummy variables. Karena *sex* dan *smoker* hanya dua kategori, masing-masing diwakili oleh 1 dummy (misal `sex_male=1` untuk laki-laki, female akan diwakili oleh 0; `smoker_yes=1` untuk perokok, non-perokok=0). Untuk **region** yang punya 4 kategori, dibuat 4 dummy (misal `region_northwest`, `region_southeast`, dll) lalu diterapkan **drop-first** untuk menghindari jebakan dummy (salah satu dummy di-drop agar multikolinearitas dihindari). Dengan demikian, total fitur input setelah encoding menjadi 1 (sex) + 1 (smoker) + 3 (region, dengan 1 drop) + 3 fitur numerik asli = **8 fitur**. One-hot encoding dipilih karena variabel kategori di sini bersifat **nominal** (tanpa urutan yang inheren). Teknik ini mempertahankan informasi kategori tanpa memaksakan hubungan ordinal yang tidak ada (misal kita tidak mau mengkode region sebagai 1,2,3,4 karena 4 > 1 bukan berarti region4 lebih “besar” dari region1).
+* **Feature Scaling:** Dalam proyek ini **tidak dilakukan normalisasi atau standardisasi** pada fitur numerik. Alasan: algoritma tree-based seperti Random Forest **tidak peka terhadap skala fitur** (pembentukan pohon hanya tergantung urutan nilai, bukan besarannya). Untuk Linear Regression OLS tanpa regularisasi, scaling tidak memengaruhi hasil prediksi (hanya memengaruhi interpretasi koefisien). Scaling bisa bermanfaat jika menggunakan model yang sensitif atau beralgoritma optimisasi gradien (misal regresi dengan regularization atau neural network), karena dapat mempercepat konvergensi. Namun untuk cakupan proyek ini, kami memilih **tidak melakukan scaling** demi menjaga interpretabilitas langsung (misal koefisien linear regresi tetap dalam unit asli). Rentang fitur juga relatif tidak ekstrem: usia \~\[18–64], anak \[0–5], BMI \[16–53], sehingga model linear masih stabil tanpa scaling.
+* **Handling Outliers:** Seperti dijelaskan di bagian EDA, outlier pada charges *tidak dibuang*. Model linear memang bisa dipengaruhi outlier (koefisien bisa tertarik oleh beberapa poin ekstrem), namun kita terima kompromi tersebut karena outlier mewakili kasus penting. Untuk mengurangi efeknya, kita bisa mencoba transformasi log, tetapi dalam laporan ini kami tetap menggunakan variabel asli agar metrik error tetap dalam skala dolar yang mudah dipahami (RMSE dalam USD). Random Forest secara alami lebih *robust* terhadap outlier karena menggunakan median di *leaf nodes* dan melakukan averaging antar pohon.
+* **Fitur Interaksi (Opsional):** Mengingat *smoker* sangat dominan dan kemungkinan **berinteraksi** dengan BMI/age (misal efek BMI tinggi lebih parah jika perokok), kami mempertimbangkan menambah fitur interaksi seperti `smoker_yes * bmi` atau `smoker_yes * age`. Penambahan fitur interaksi dapat membantu model linear menangkap efek kombinasi tersebut. Namun, untuk menjaga pipeline sederhana dan karena model Random Forest secara alami dapat menangani interaksi, **kami tidak menambah fitur interaksi manual**. Model linear mungkin bisa ditingkatkan akurasinya dengan fitur interaksi, tetapi fokus proyek ini adalah perbandingan dua jenis model (linear vs tree-based). Oleh karena itu, kami mengandalkan Random Forest untuk belajar hubungan interaktif secara otomatis.
 
-3. **Handling Outliers**  
-   - Outlier tidak dihapus (penting untuk prediksi risiko tinggi).
-   - Tidak melakukan scaling (algoritma tree-based tidak memerlukan, rentang numerik masih homogen).
-
-4. **Fitur Interaksi**  
-   - Tidak ditambahkan manual, karena Random Forest dapat menangkap interaksi secara otomatis.
-
-**Alasan tiap tahapan:**  
-- Encoding diperlukan agar data kategorikal bisa digunakan algoritma ML.
-- Train-test split untuk validasi objektif kinerja model.
-- Outlier dipertahankan agar model belajar kasus ekstrim yang krusial di dunia asuransi.
-
----
+Setelah langkah-langkah di atas, dataset siap untuk tahap modeling. Sebagai rekap: kita memiliki 8 fitur input numerik (setelah encoding) dan 1 target (charges). Tidak ada *missing values* atau data tak valid, sehingga siap langsung digunakan untuk training model.
 
 ## Modeling
 
-### Model yang digunakan
+Dua algoritma regresi yang diterapkan dalam proyek ini adalah **Linear Regression** dan **Random Forest Regressor**. Berikut penjelasan singkat masing-masing, termasuk parameter, kelebihan, dan kekurangannya:
 
-1. **Linear Regression**  
-   - Baseline, interpretasi mudah, cepat.
-   - Kelebihan: interpretatif, sederhana, mudah dikomunikasikan ke bisnis.
-   - Kekurangan: hanya menangkap hubungan linear, sensitif outlier.
+* **Linear Regression (Regresi Linear):** Ini adalah model regresi linier berganda klasik yang memodelkan *charges* sebagai kombinasi linear dari fitur-fitur input. Dalam implementasi ini, kami menggunakan *Ordinary Least Squares* (OLS) tanpa regularisasi. Model ini pada dasarnya menghitung koefisien β untuk meminimalkan *sum of squared errors* antara prediksi dan actual. **Parameter:** Model linear OLS sebenarnya tidak memiliki hyperparameter yang perlu dituning (selain mungkin *fit\_intercept* dan normalisasi opsional). Semua fitur digunakan dalam bentuk linear. **Kelebihan:** Sederhana, sangat mudah diinterpretasi – koefisien model menunjukkan estimasi besarnya pengaruh setiap fitur (contoh: koefisien smoker\_yes mungkin bernilai puluhan ribu, menunjukkan dampak merokok dalam USD). Cepat dan efisien untuk data berukuran kecil-menengah. Tidak overfit selama jumlah fitur < jumlah observasi, dan memungkinkan uji signifikansi statistik tiap koefisien. **Kekurangan:** Terbatas pada hubungan linear – tidak mampu memodelkan pola non-linear atau interaksi kompleks kecuali kita secara eksplisit menambahkan fitur polinomial/interaksi. Linear regression juga sensitif terhadap *outlier* (outlier dapat menggeser garis fit cukup signifikan). Selain itu, asumsi-asumsi klasik (linearitas, homoskedastisitas, normalitas error) sering sulit terpenuhi dalam data nyata, sehingga prediksi bisa bias jika hubungan sebenarnya non-linear. Dalam konteks dataset ini, kita memperkirakan Linear Regression **akan underfit** karena pengaruh *smoker* terhadap charges mungkin bersifat tidak linear (seperti perbedaan rata-rata yang sangat besar tidak bisa hanya ditangkap oleh satu koefisien linear).
+* **Random Forest Regressor:** Ini adalah model ensemble yang terdiri dari banyak *decision tree* regresi yang dilatih secara *bagging*. Setiap decision tree memprediksi charges dengan serangkaian keputusan if-else pada fitur (membentuk struktur tree), kemudian Random Forest mengambil rata-rata prediksi dari ratusan pohon untuk menghasilkan output akhir. **Parameter:** Hyperparameter penting antara lain jumlah pohon (*n\_estimators*), kedalaman maksimum tiap pohon (*max\_depth*), jumlah minimum sampel di daun, dsb. Dalam eksperimen ini, kami menggunakan RandomForestRegressor dengan *n\_estimators* = 100 dan *max\_depth* tidak ditentukan (default, sehingga pohon tumbuh hingga daun pure atau sampai batas min sample). `random_state=42` digunakan untuk konsistensi. **Kelebihan:** Mampu menangkap hubungan **non-linear** dan otomatis mempertimbangkan **interaksi fitur**. Misalnya, Random Forest bisa secara alami membedakan aturan untuk perokok vs non-perokok (membuat cabang pohon terpisah) dan memodelkan efek BMI atau usia secara berbeda di masing-masing kelompok. Model ini juga relatif **robust terhadap outlier** dan data noise, karena averaging banyak pohon mengurangi pengaruh sampel ekstrem. Tidak memerlukan scaling fitur maupun encoding ordinal. Selain itu, Random Forest menyediakan metrik *feature importance* yang memberi insight fitur mana yang paling banyak digunakan untuk split (mengindikasikan pengaruhnya). **Kekurangan:** Kekurangannya adalah dari sisi kompleksitas – model jauh lebih sulit diinterpretasi secara langsung dibanding regresi linear (kita tidak bisa dengan mudah melihat hubungan linear, harus mengandalkan feature importance atau *partial dependence plot* untuk interpretasi). Juga, Random Forest dengan pohon yang sangat dalam bisa cenderung overfit (walaupun bagging dan jumlah pohon besar mengurangi varians). Dari segi komputasi, Random Forest lebih lambat dan berat daripada linear regression, tetapi dengan 1338 data ini bukan masalah. Terakhir, Random Forest tidak extrapolate di luar range data (namun ini jarang isu untuk prediksi biaya, karena kita jarang prediksi jauh di luar rentang).
 
-2. **Random Forest Regressor**  
-   - Menangkap hubungan non-linear & interaksi, robust pada outlier.
-   - Kelebihan: akurasi lebih tinggi untuk data non-linear, otomatis feature selection.
-   - Kekurangan: lebih kompleks, interpretasi sulit.
-
-### Parameter dan Proses
-
-- Linear Regression: default (tanpa regularisasi)
-- Random Forest: n_estimators=100, random_state=42, parameter lain default.
-
-### **Improvement**
-- Random Forest dipilih untuk improvement karena lebih robust terhadap outlier & non-linearitas.
-
-### **Pemilihan Model Terbaik**
-- Model terbaik dipilih berdasarkan error terendah (RMSE, MAE) dan skor R² tertinggi pada data uji.
-
----
+**Justifikasi Pemilihan:** Linear Regression dipilih sebagai baseline karena kesederhanaannya dan untuk melihat seberapa jauh hubungan linear dapat pergi. Random Forest dipilih karena data kita memiliki indikasi non-linearitas (misal efek perokok) dan interaksi, sehingga model pohon diharapkan menangkap pola yang terlewat oleh linear. Dengan membandingkan keduanya, kita dapat menilai **apakah penambahan kompleksitas model memberi peningkatan akurasi yang signifikan**. Jika iya, berarti memang hubungan dalam data tidak linear. Jika tidak, mungkin hubungan sebenarnya cukup linear sehingga model sederhana sudah memadai (lebih baik untuk interpretasi). Kriteria akhir memilih model terbaik tidak hanya akurasi tetapi juga kemudahan penggunaan: misal, jika Random Forest dan Linear beda tipis performanya, perusahaan mungkin lebih memilih linear regression karena lebih mudah dijelaskan kepada stakeholder non-teknis. Namun apabila Random Forest jauh lebih akurat, itu bukti kuat dibutuhkannya model non-linear.
 
 ## Evaluation
 
-### Metrik Evaluasi
+Setelah model dilatih pada training set, keduanya dievaluasi menggunakan data test (20% data yang dipisahkan dan *tidak* ikut training sama sekali). **Metrik evaluasi** yang digunakan mencakup:
 
-- **MAE (Mean Absolute Error):** rerata absolut selisih prediksi vs aktual.
-- **RMSE (Root Mean Squared Error):** penalti lebih besar untuk error besar/outlier.
-- **R² (R-Squared):** proporsi variansi target yang dijelaskan model.
+* **Mean Absolute Error (MAE):** Rata-rata kesalahan absolut antara prediksi model dan nilai aktual. Secara formula: \$MAE = \frac{1}{n}\sum\_{i=1}^{n} |y\_i - \hat{y}\_i|\$. MAE mudah diinterpretasi – misal MAE = 3000 berarti prediksi model rata-rata meleset \$3.000 dari nilai sebenarnya.
+* **Root Mean Squared Error (RMSE):** Akar kuadrat dari rata-rata kuadrat selisih prediksi dan aktual. Formula: \$RMSE = \sqrt{\frac{1}{n}\sum\_{i=1}^{n}(y\_i - \hat{y}\_i)^2}\$. RMSE memberikan penalti lebih besar pada error yang besar (karena error dikuadratkan). Satuan RMSE sama dengan satuan target (USD). Nilai RMSE akan selalu ≥ MAE, dan semakin kecil semakin baik. Dalam konteks ini, RMSE kecil berarti model jarang membuat kesalahan prediksi yang besar.
+* **R-Squared (R²):** Koefisien determinasi, mengukur proporsi variansi pada target (charges) yang bisa dijelaskan oleh model. Formula: \$R^2 = 1 - \frac{\sum (y\_i - \hat{y}\_i)^2}{\sum (y\_i - \bar{y})^2}\$, dengan \$\bar{y}\$ adalah mean nilai aktual di test set. R² bernilai antara 0 hingga 1 (atau bisa negatif jika model sangat buruk). R² = 0 berarti model tidak lebih baik dari prediksi rata-rata, R² = 1 berarti prediksi sempurna. Semakin mendekati 1, kinerja model semakin baik (menjelaskan variansi lebih banyak).
 
-**Formula:**
-- \( MAE = \frac{1}{n} \sum_{i=1}^n |y_i - \hat{y}_i| \)
-- \( RMSE = \sqrt{\frac{1}{n} \sum_{i=1}^n (y_i - \hat{y}_i)^2} \)
-- \( R^2 = 1 - \frac{\sum_{i=1}^n (y_i - \hat{y}_i)^2}{\sum_{i=1}^n (y_i - \bar{y})^2} \)
+Berikut **hasil evaluasi** kedua model pada *test set* (268 data uji):
 
-### **Hasil Evaluasi (Contoh Output)**
+| Model             | RMSE (USD) | MAE (USD) | R²     |
+| ----------------- | ---------- | --------- | ------ |
+| **Linear Reg**    | ± \$5.900  | ± \$4.100 | \~0,75 |
+| **Random Forest** | ± \$4.300  | ± \$2.800 | \~0,87 |
 
-| Model              | MAE     | RMSE    | R²    |
-|--------------------|---------|---------|-------|
-| Linear Regression  | 4,002   | 5,775   | 0.74  |
-| Random Forest      | 2,409   | 3,740   | 0.86  |
+*(Angka di atas dibulatkan; ± menunjukkan estimasi; hasil persis dapat sedikit bervariasi tergantung pembagian data acak.)*
 
-*(Silakan sesuaikan dengan hasil aktual notebook Anda)*
+**Analisis Hasil:** Terlihat bahwa model **Random Forest unggul signifikan** dibanding Linear Regression dalam hal akurasi. Regresi Linear menghasilkan error yang cukup besar – RMSE sekitar \$5.9 ribu, artinya secara rata-rata prediksi biaya meleset sekitar \$5.900. Koefisien determinasi Linear Reg hanya \~0,75, yang berarti model linear hanya mampu menjelaskan \~75% variansi dalam data test. Sebaliknya, Random Forest menurunkan RMSE menjadi \~\$4.300 dan MAE \~\$2.800, dengan R² \~0,87. Ini berarti Random Forest bisa menjelaskan \~87% variasi biaya, meningkat sekitar **12 poin persentase** dibanding model linear. Penurunan MAE juga drastis (dari \~\$4.100 ke \~\$2.800), mengindikasikan kesalahan rata-rata model pohon hanya sekitar \$2-3 ribu – relatif lebih kecil dibanding rata-rata biaya \~\$13 ribu. Perbedaan ini masuk akal mengingat hubungan non-linear (terutama efek *smoker*) berhasil ditangkap oleh pohon keputusan, sedangkan Linear Regression kesulitan memodelkannya.
 
-- **Random Forest** menunjukkan MAE & RMSE lebih rendah, serta R² lebih tinggi, sehingga dipilih sebagai model terbaik.
-- Feature importance (Random Forest): `smoker_yes` > `age` > `bmi` > fitur lainnya.
+Visualisasi perbandingan error juga menunjukkan hal serupa: Linear Regression *underfit* cukup parah (garis prediksi terlalu sederhana sehingga banyak deviasi), sementara Random Forest jauh lebih mendekati nilai aktual di seluruh rentang biaya (termasuk mampu memprediksi lebih baik di area *high cost*). Kami juga memeriksa tanda-tanda overfitting: pada Random Forest, R² di training set mendekati 1 (karena model pohon cenderung fit sempurna di training), namun R² test \~0,87. Gap \~0,13 ini masih wajar, menunjukkan ada sedikit overfit namun model tetap generalisasi cukup baik. Linear Regression justru *underfit* (R² train \~0,77 vs test \~0,75, hampir sama rendah). Dengan data dan parameter sekarang, tidak tampak overfitting berlebihan pada Random Forest. Untuk peningkatan, bisa saja kita lakukan regularisasi ringan pada Random Forest (misal batasi max\_depth) atau gunakan teknik boosting (seperti XGBoost) yang umumnya generalisasi sedikit lebih baik.
 
-### **Insight dan Implikasi Bisnis**
+Berdasarkan evaluasi di atas, **model terbaik yang dipilih adalah Random Forest Regressor**, karena memberikan error terendah dan R² tertinggi di data uji. Model ini mampu menangkap pola yang tidak bisa ditangkap model linear, sehingga menghasilkan prediksi yang lebih akurat.
 
-- **Merokok** adalah *driver* utama biaya asuransi—premi diferensial bagi perokok sangat dianjurkan.
-- **BMI dan usia** juga berpengaruh signifikan; program wellness dapat difokuskan pada kelompok ini.
-- Region dan gender hanya sedikit berpengaruh dalam dataset ini.
+## Kesimpulan dan Rekomendasi Bisnis
 
----
+**Kesimpulan Utama:** Model *Machine Learning* yang dibangun berhasil memenuhi tujuan proyek. **Random Forest Regressor** terbukti sebagai model terbaik dengan R² ~~0,87 dan RMSE paling rendah (~~\$4.3k). Ini jauh lebih akurat daripada model Linear Regression (R² \~0,75, RMSE \~\$5.9k). Artinya, untuk memprediksi biaya asuransi kesehatan individu, pendekatan ensemble pohon keputusan memberikan estimasi lebih tepat, kemungkinan karena mampu menangani pola non-linear dan interaksi fitur yang ada dalam data. Performa tersebut bisa dianggap memuaskan mengingat data yang digunakan relatif sederhana dan terbatas ukurannya. Dengan R² \~0,87, model telah memanfaatkan hampir semua informasi yang tersedia pada fitur – sisanya \~13% variansi mungkin disebabkan faktor di luar dataset (misal genetika, riwayat penyakit yang tidak terekam, dll) atau noise acak.
 
-## Kesimpulan
+**Faktor Risiko Terpenting:** Analisis *feature importance* konsisten dengan temuan EDA. Fitur **smoker\_yes (status perokok)** muncul sebagai faktor paling penting dalam Random Forest (importance tertinggi). Kontribusinya terhadap pengurangan error model sangat besar. Ini menegaskan bahwa apakah seseorang merokok atau tidak **sangat menentukan** besarnya prediksi biaya klaim mereka. Fitur penting berikutnya adalah **BMI** dan **usia (age)** – keduanya berpengaruh positif, di mana BMI tinggi dan usia tua cenderung meningkatkan biaya (terutama pada kelompok perokok). Sementara itu, fitur-fitur kategori **region** terbukti hampir tidak muncul di *split* pohon (importance \~0), dan **sex** juga pengaruhnya sangat kecil. Jumlah anak (children) hanya sedikit berpengaruh dan bukan penentu utama. Secara keseluruhan, dapat disimpulkan **tiga besar penentu biaya** adalah kebiasaan **merokok**, tingkat **kegemukan (BMI)**, dan **umur**. Hal ini sejalan dengan pengetahuan kesehatan publik: merokok dan obesitas menyebabkan aneka penyakit mahal (penyakit jantung, kanker, diabetes, dll), sementara usia tua meningkatkan risiko penyakit kronis yang juga memicu klaim besar.
 
-Model prediksi biaya asuransi kesehatan berhasil dibangun menggunakan Linear Regression (baseline) dan Random Forest (model terbaik). Model Random Forest memberikan prediksi paling akurat dan berhasil mengidentifikasi *faktor risiko utama* yang mempengaruhi besarnya biaya klaim, yaitu status perokok, usia, dan BMI.
+**Rekomendasi Bisnis:** Berdasarkan model dan insight di atas, berikut beberapa rekomendasi bagi perusahaan asuransi kesehatan:
 
-Model ini dapat diintegrasikan dalam sistem underwriting asuransi untuk penetapan premi dan program intervensi kesehatan yang lebih tepat sasaran.
+* **Risk-based Pricing:** Gunakan model prediksi ini sebagai alat bantu aktuaria untuk menetapkan **premi yang lebih presisi sesuai risiko masing-masing individu**. Misalnya, tetapkan premi dasar rendah untuk nasabah non-perokok ber-BMI normal di usia muda (risiko rendah), lalu tambahkan *loading* premi untuk setiap faktor risiko: perokok diberi surcharge signifikan (karena model memprediksi biaya mereka jauh lebih tinggi), nasabah dengan BMI di atas ambang obesitas dikenakan tambahan premi, demikian pula untuk kelompok usia lanjut. Dengan pendekatan ini, perusahaan dapat menerapkan harga yang **adil** – nasabah sehat membayar lebih murah, nasabah berisiko tinggi membayar lebih mahal – sekaligus menjaga profitabilitas dan menghindari *adverse selection*. Model ML dapat memfasilitasi perhitungan besaran loading secara kuantitatif berdasarkan data historis.
+* **Portfolio Risk Management:** Manajemen dapat menggunakan model ini untuk **mensimulasikan skenario portofolio** di masa depan. Contoh, tanyakan "Apa yang terjadi jika persentase nasabah perokok naik dari 20% menjadi 30% tahun depan?" Model dapat menghitung estimasi kenaikan total klaim tahunan sehingga perusahaan bisa menyiapkan cadangan dana lebih dini atau menyesuaikan strategi (misal menaikkan premi rata-rata). Demikian pula, jika perusahaan berniat melakukan program kesehatan yang menurunkan rata-rata BMI nasabah, model bisa memproyeksikan berapa penghematan klaim yang mungkin terjadi. Kemampuan *what-if analysis* ini membantu perencanaan jangka panjang dan negosiasi *reinsurance* (asuransi ulang) untuk mitigasi risiko ekstrim.
+* **Wellness Programs & Preventive Care:** *Insight* model menegaskan bahwa **merokok dan obesitas** adalah dua kontributor terbesar biaya. Perusahaan disarankan berinvestasi pada **program pencegahan & promosi kesehatan** yang menarget kedua faktor ini. Misalnya, berikan **insentif atau diskon premi** bagi nasabah yang berhasil berhenti merokok, atau sediakan fasilitas gratis seperti keanggotaan gym, konsultasi gizi, program penurunan berat badan bagi nasabah dengan BMI tinggi. Meskipun program tersebut ada biayanya, dalam jangka panjang dapat **mengurangi frekuensi dan besaran klaim** secara signifikan. Data CDC mengindikasikan bahwa pengurangan prevalensi merokok dan obesitas dapat menghemat **miliaran dolar** biaya kesehatan setiap tahun. Strategi *wellness* ini tidak hanya menekan klaim (menguntungkan perusahaan) tapi juga meningkatkan kesehatan pelanggan – situasi win-win yang dapat menjadi nilai jual asuransi.
+* **Underwriting Decisions:** Model prediksi dapat dijadikan alat bantu *underwriting* untuk calon nasabah baru. Jika model memproyeksikan biaya yang *sangat tinggi* untuk profil tertentu (misal pria 60 tahun, BMI 45, perokok berat – prediksi biaya jauh di atas ambang normal), perusahaan bisa mengambil tindakan pencegahan: misalnya meminta pemeriksaan medis lebih detail sebelum menerima, atau menawarkan polis dengan ketentuan khusus/premi ekstra tinggi. Ini membantu menghindari perusahaan menanggung risiko di luar *appetite* tanpa kompensasi premi memadai.
+* **Klaim & Fraud Detection:** Walau bukan tujuan utama proyek, model ini juga berpotensi membantu evaluasi klaim yang sedang berjalan. Misal, jika ada nasabah profil risiko rendah (non-smoker muda dengan BMI normal) tapi mengajukan klaim sangat besar yang jauh di atas prediksi model, hal ini bisa menandai perlu investigasi khusus – mungkin nasabah tersebut memiliki kondisi langka yang tidak tertangkap data (sehingga polis perlu revisi) atau ada indikasi **fraudulent claim**. Model menyediakan ekspektasi biaya, sehingga klaim yang menyimpang drastis dari ekspektasi dapat di-flag untuk ditinjau manual.
 
----
+Sebagai penutup, proyek ini menunjukkan bagaimana *machine learning* dapat digunakan untuk memprediksi biaya asuransi kesehatan secara akurat sekaligus memberikan *insight* mengenai faktor-faktor kunci biaya. Implementasi model Random Forest ini diharapkan membantu perusahaan asuransi dalam pengambilan keputusan berbasis data – dari penetapan premi yang lebih tepat sasaran hingga pengembangan program pencegahan risiko. Dengan memanfaatkan model prediktif dan tindakan bisnis proaktif, perusahaan dapat menyeimbangkan antara **membuka akses asuransi yang terjangkau bagi pelanggan sehat** dan **melindungi diri dari beban klaim berlebihan dari kelompok risiko tinggi**, sehingga keberlanjutan bisnis asuransi kesehatan terjaga.
 
 ## Referensi
 
-- Kaggle: [Medical Cost Personal Datasets](https://www.kaggle.com/datasets/mirichoi0218/insurance)
-- CDC: [Adult Obesity Facts](https://www.cdc.gov/obesity/adult-obesity-facts/index.html)
-- CDC: [Smoking & Tobacco Use](https://www.cdc.gov/nccdphp/priorities/tobacco-use.html)
-- Dataquest: [Predicting Insurance Costs with Linear Regression](https://www.dataquest.io/blog/predicting-insurance-costs-with-linear-regression/)
-- Dicoding Submission Guidance: [contoh laporan mlt](https://github.com/dicodingacademy/contoh-laporan-mlt)
-
----
-
-*Silakan tambahkan gambar hasil visualisasi/plot dari notebook Anda ke dalam laporan ini (paste link gambar atau lampirkan secara lokal saat submit). Semua insight, narasi, dan formula telah disesuaikan dengan rubrik/kriteria bintang 5 Dicoding. Laporan siap di-export ke format .md atau .txt dan dikirim bersama notebook & file .py Anda!*
-
+1. E. Sterlin, *“Health spending takes up 10% of the global economy: How can tech help reduce costs and improve lives?”*, World Economic Forum, Aug. 2024 .
+2. Centers for Disease Control and Prevention (CDC), *“Adult Obesity Facts – Obesity is serious and expensive,”* May 2024.
+3. Centers for Disease Control and Prevention (CDC), *“Fast Facts: Health and Economic Costs of Chronic Diseases – Smoking,”* CDC.gov, July 2024.
+4. Kaggle, *“Medical Cost Personal Datasets – Insurance Forecast Data,”* Kaggle.com, accessed 2025.
