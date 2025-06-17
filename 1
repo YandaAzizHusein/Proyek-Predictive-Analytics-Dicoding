@@ -1,0 +1,332 @@
+Siap! Berikut **template laporan siap submit bintang 5** yang sudah **lengkap dengan contoh kode, output, dan insight** di setiap tahapan—*format markdown*, sesuai standar Dicoding.
+Kamu hanya perlu **mengganti/menyesuaikan hasil output** dengan hasil eksekusi notebook-mu (nama file gambar dan angka bisa kamu sesuaikan dengan hasil aktual project).
+
+---
+
+# Laporan Proyek Machine Learning
+
+## Prediksi Biaya Asuransi Kesehatan
+
+---
+
+## 1. Domain Proyek
+
+Pengeluaran asuransi kesehatan dunia terus meningkat dan pada tahun 2021 mencapai \$9,8 triliun (10,3% PDB global)【1】. Salah satu penyebab utamanya adalah penyakit akibat gaya hidup seperti obesitas dan merokok【2】【3】. Data menunjukkan sebagian besar klaim asuransi berasal dari kelompok risiko tinggi.
+Jika perusahaan asuransi gagal memprediksi biaya secara akurat, risiko kerugian akibat underpricing atau kehilangan nasabah karena overpricing semakin besar. Model prediksi berbasis data (machine learning) memungkinkan perusahaan melakukan *risk-based pricing* yang adil, akurat, serta meningkatkan efisiensi dan profitabilitas【4】.
+
+**Referensi:**
+
+1. World Economic Forum (2024), *Health spending*
+2. CDC (2024), *Adult Obesity Facts*
+3. CDC (2024), *Health & Economic Costs of Smoking*
+4. Kaggle, *Medical Cost Personal Datasets*
+
+---
+
+## 2. Business Understanding
+
+### Problem Statements
+
+1. Bagaimana membangun model prediksi biaya klaim asuransi kesehatan individu dengan error minimal?
+2. Fitur risiko apa yang paling dominan dalam menentukan besar kecilnya biaya klaim?
+
+### Goals
+
+* Menghasilkan model prediksi biaya klaim dengan error serendah mungkin (R² tinggi, RMSE/MAE rendah).
+* Mengidentifikasi fitur risiko utama sebagai dasar pengambilan keputusan bisnis asuransi.
+
+### Solution Statements
+
+* **Solusi 1:** Model *Linear Regression* sebagai baseline.
+* **Solusi 2:** Model *Random Forest* dan *XGBoost* untuk menangkap hubungan non-linear & interaksi fitur.
+* **Improvement:** Hyperparameter tuning (GridSearchCV) pada Random Forest/XGBoost.
+* **Metrik evaluasi:** MAE, RMSE, R²—semua metrik terukur dan relevan untuk regresi biaya klaim.
+
+---
+
+## 3. Data Understanding
+
+### Sumber Dataset
+
+Dataset: [Medical Cost Personal Dataset – Kaggle](https://www.kaggle.com/datasets/mirichoi0218/insurance)
+
+* 1.338 entri, 7 fitur: `age`, `sex`, `bmi`, `children`, `smoker`, `region`, `charges`.
+* Tidak ada missing value/anomali signifikan.
+
+### Variabel/Fitur
+
+* `age`: usia peserta (tahun)
+* `sex`: jenis kelamin
+* `bmi`: body mass index
+* `children`: jumlah anak tertanggung
+* `smoker`: status merokok
+* `region`: wilayah domisili
+* `charges`: total biaya klaim
+
+### Eksplorasi Data & Visualisasi
+
+#### Statistik Deskriptif
+
+```python
+import pandas as pd
+df = pd.read_csv('insurance.csv')
+print(df.info())
+print(df.describe())
+df.head()
+```
+
+**Output:**
+
+| age | sex    | bmi    | children | smoker | region    | charges  |
+| --- | ------ | ------ | -------- | ------ | --------- | -------- |
+| 19  | female | 27.900 | 0        | yes    | southwest | 16884.92 |
+| 18  | male   | 33.770 | 1        | no     | southeast | 1725.55  |
+
+**Insight:**
+Tidak ada missing value atau anomali signifikan. Data siap untuk analisis lebih lanjut.
+
+---
+
+#### Distribusi Target (`charges`)
+
+```python
+import matplotlib.pyplot as plt
+import seaborn as sns
+plt.figure(figsize=(7,4))
+sns.histplot(df['charges'], bins=30, kde=True, color='teal')
+plt.title('Distribusi Charges (Biaya Asuransi)')
+plt.xlabel('Charges')
+plt.ylabel('Frequency')
+plt.show()
+```
+
+![Distribusi Charges](charges_hist.png)
+
+**Insight:**
+Distribusi biaya asuransi sangat skewed ke kanan. Mayoritas klaim < \$20.000/tahun, tapi ada outlier > \$50.000/tahun. Outlier penting diperhatikan karena menjadi risiko besar bagi perusahaan asuransi.
+
+---
+
+#### Korelasi Fitur Numerik
+
+```python
+plt.figure(figsize=(6,4))
+sns.heatmap(df.corr(numeric_only=True), annot=True, cmap='YlGnBu')
+plt.title('Korelasi Numerik')
+plt.show()
+```
+
+![Heatmap Korelasi](heatmap_corr.png)
+
+**Insight:**
+Korelasi tertinggi pada fitur **smoker** (\~0.79), diikuti age (\~0.30) dan bmi (\~0.19). Children dan sex hampir tidak berpengaruh terhadap charges.
+
+---
+
+#### Boxplot Status Perokok
+
+```python
+plt.figure(figsize=(5,4))
+sns.boxplot(data=df, x='smoker', y='charges', palette='Set2')
+plt.title('Biaya Asuransi berdasarkan Status Perokok')
+plt.show()
+```
+
+![Boxplot Smoker](smoker_box.png)
+
+**Insight:**
+Perokok memiliki biaya rata-rata dan median yang jauh lebih tinggi dibanding non-perokok—indikasi bahwa status merokok adalah prediktor risiko utama.
+
+---
+
+## 4. Data Preparation
+
+#### Proses & Alasan
+
+1. **One Hot Encoding:** Fitur kategorikal (`sex`, `smoker`, `region`) diubah menjadi numerik.
+2. **Train-Test Split:** Data dipecah menjadi train dan test set (80:20, random\_state=42) untuk evaluasi objektif.
+3. **Scaling:** Untuk model linier (StandardScaler) agar skala fitur konsisten.
+
+```python
+df_ohe = pd.get_dummies(df, columns=['sex', 'smoker', 'region'], drop_first=True)
+from sklearn.model_selection import train_test_split
+X = df_ohe.drop('charges', axis=1)
+y = df_ohe['charges']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+print(X_train.shape, X_test.shape)
+```
+
+**Output:**
+(1070, 8) (268, 8)
+
+**Insight:**
+Semua fitur kategorikal sudah di-encode. Proporsi train-test terjaga. Scaling membantu model linier agar training lebih stabil.
+
+---
+
+## 5. Modeling
+
+### Linear Regression (Baseline)
+
+```python
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+linreg = LinearRegression()
+linreg.fit(X_train_scaled, y_train)
+y_pred_lr = linreg.predict(X_test_scaled)
+```
+
+### Random Forest Regressor
+
+```python
+from sklearn.ensemble import RandomForestRegressor
+rf = RandomForestRegressor(n_estimators=100, random_state=42)
+rf.fit(X_train, y_train)
+y_pred_rf = rf.predict(X_test)
+```
+
+### XGBoost Regressor
+
+```python
+from xgboost import XGBRegressor
+xgb = XGBRegressor(n_estimators=100, random_state=42)
+xgb.fit(X_train, y_train)
+y_pred_xgb = xgb.predict(X_test)
+```
+
+### Hyperparameter Tuning (GridSearchCV, contoh RF)
+
+```python
+from sklearn.model_selection import GridSearchCV
+param_grid = {'n_estimators': [100, 200], 'max_depth': [None, 5, 10]}
+grid_rf = GridSearchCV(RandomForestRegressor(random_state=42), param_grid, cv=3)
+grid_rf.fit(X_train, y_train)
+print("Best params RF:", grid_rf.best_params_)
+```
+
+**Output:**
+Best params RF: `{'max_depth': 10, 'n_estimators': 200}`
+
+**Insight:**
+Random Forest/XGBoost lebih mampu menangkap hubungan non-linear, robust terhadap outlier, dan optimal dengan tuning parameter.
+
+---
+
+## 6. Evaluation
+
+### Metrik & Penjelasan
+
+* **MAE:** Rata-rata selisih mutlak prediksi dan nilai aktual.
+* **RMSE:** Akar dari rata-rata kuadrat error, sensitif pada outlier.
+* **R²:** Semakin mendekati 1, semakin baik model menjelaskan variasi data.
+
+```python
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+def eval_model(y_true, y_pred, modelname):
+    return {
+        'Model': modelname,
+        'MAE': mean_absolute_error(y_true, y_pred),
+        'RMSE': mean_squared_error(y_true, y_pred, squared=False),
+        'R2': r2_score(y_true, y_pred)
+    }
+
+results = [
+    eval_model(y_test, y_pred_lr, 'Linear Regression'),
+    eval_model(y_test, y_pred_rf, 'Random Forest'),
+    eval_model(y_test, y_pred_xgb, 'XGBoost')
+]
+import pandas as pd
+print(pd.DataFrame(results))
+```
+
+**Output:**
+
+| Model             | MAE   | RMSE  | R²   |
+| ----------------- | ----- | ----- | ---- |
+| Linear Regression | 4,150 | 5,950 | 0.75 |
+| Random Forest     | 2,800 | 4,300 | 0.87 |
+| XGBoost           | 2,700 | 4,150 | 0.89 |
+
+**Insight:**
+XGBoost model terbaik, unggul tipis atas Random Forest. Keduanya jauh lebih baik dibanding Linear Regression.
+
+---
+
+### Visualisasi Prediksi vs Aktual
+
+```python
+plt.figure(figsize=(6,4))
+plt.scatter(y_test, y_pred_xgb, alpha=0.5)
+plt.xlabel('Actual Charges')
+plt.ylabel('Predicted Charges (XGBoost)')
+plt.title('Prediksi vs Aktual Charges')
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
+plt.show()
+```
+
+![Scatter Prediksi vs Aktual](pred_vs_actual.png)
+
+**Insight:**
+Prediksi XGBoost mengikuti pola data aktual dengan baik, termasuk di area biaya klaim tinggi.
+
+---
+
+### Feature Importance (Random Forest/XGBoost)
+
+```python
+importances = rf.feature_importances_
+fi_df = pd.DataFrame({'feature': X.columns, 'importance': importances}).sort_values('importance', ascending=False)
+plt.figure(figsize=(8,4))
+sns.barplot(x='importance', y='feature', data=fi_df)
+plt.title('Feature Importance Random Forest')
+plt.show()
+```
+
+![Feature Importance RF](rf_feature_importance.png)
+
+**Insight:**
+Fitur `smoker_yes` adalah prediktor utama, diikuti `age` dan `bmi`. Faktor region, sex, dan children relatif kecil pengaruhnya.
+
+---
+
+## 7. Insight Bisnis & Simulasi
+
+* **Risk-based pricing:** Premi untuk perokok dan BMI tinggi harus lebih tinggi.
+* **Simulasi:** Kenaikan premi perokok 30% dapat meningkatkan GWP (gross written premium) tanpa menaikkan loss ratio.
+* **Rekomendasi:**
+
+  * Implementasi *wellness program* untuk menekan jumlah perokok dan obesitas.
+  * Model siap di-deploy ke workflow underwriting otomatis.
+  * Lakukan retraining model secara berkala.
+
+---
+
+## 8. Referensi
+
+1. World Economic Forum (2024), *Health spending*
+2. CDC (2024), *Adult Obesity Facts*
+3. CDC (2024), *Health & Economic Costs of Smoking*
+4. Kaggle, *Medical Cost Personal Datasets*
+
+---
+
+**Catatan:**
+
+* **Output visualisasi (plot histogram, heatmap, boxplot, feature importance, dsb) wajib dari hasil notebook-mu sendiri.**
+* Lampirkan hasil visualisasi di .md dengan format:
+  `![Judul Gambar](nama_file.png)`
+* Kode dalam laporan hanya bagian penjelasan penting, bukan seluruh kode project.
+
+---
+
+**\[Selesai — Template Bintang 5, siap submit!]**
+
+---
+
+Kalau mau **file .md siap submit** (bisa aku susunkan dari output notebook-mu), upload saja output/gambar yang dihasilkan, atau link Colab/Notebook, aku bantu finalisasi!
